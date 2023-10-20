@@ -1,1 +1,165 @@
-qdqwd
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalação do Docker e Docker Compose</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #f2f2f2;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: monospace;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Passo 1 — Instalando o Docker</h1>
+    </header>
+
+    <section>
+        <p>O pacote de instalação do Docker disponível no repositório oficial do Ubuntu pode não ser a versão mais recente. Para garantir que tenhamos a versão mais recente, instalaremos o Docker a partir do repositório oficial do Docker. Para fazer isso, adicionaremos uma nova fonte de pacotes, adicionaremos a chave GPG do Docker para garantir que os downloads sejam válidos, e então instalaremos o pacote.</p>
+        
+        <p>Primeiro, atualize sua lista existente de pacotes:</p>
+
+        <pre><code>sudo apt update</code></pre>
+
+        <p>Em seguida, instale alguns pacotes pré-requisitos que permitem que o apt use pacotes sobre HTTPS:</p>
+
+        <pre><code>sudo apt install apt-transport-https ca-certificates curl software-properties-common</code></pre>
+
+        <p>Adicione a chave GPG para o repositório oficial do Docker ao seu sistema:</p>
+
+        <pre><code>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</code></pre>
+
+        <p>Adicione o repositório do Docker às fontes do APT:</p>
+
+        <pre><code>sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"</code></pre>
+
+        <p>Isso também atualizará nosso banco de dados de pacotes com os pacotes do Docker do repositório recém-adicionado.</p>
+
+        <p>Certifique-se de que está prestes a instalar a partir do repositório do Docker em vez do repositório padrão do Ubuntu:</p>
+
+        <pre><code>apt-cache policy docker-ce</code></pre>
+
+        <p>Você verá uma saída semelhante a esta, embora o número da versão para o Docker possa ser diferente:</p>
+
+        <pre><code>Output of apt-cache policy docker-ce
+docker-ce:
+Installed: (none)
+Candidate: 5:19.03.9~3-0~ubuntu-focal
+Version table:
+5:19.03.9~3-0~ubuntu-focal 500
+500 https://download.docker.com/linux/ubuntu focal/stable amd64 Packages</code></pre>
+
+        <p>Observe que o docker-ce não está instalado, mas o candidato para instalação é do repositório do Docker para o Ubuntu 20.04 (focal).</p>
+
+        <p>Finalmente, instale o Docker:</p>
+
+        <pre><code>sudo apt install docker-ce</code></pre>
+
+        <p>O Docker deve estar instalado agora, o daemon iniciado, e o processo habilitado para iniciar no boot. Verifique se está em execução:</p>
+
+        <pre><code>sudo systemctl status docker</code></pre>
+
+        <p>A saída deve ser semelhante à seguinte, mostrando que o serviço está ativo e em execução:</p>
+
+        <pre><code>Output
+● docker.service - Docker Application Container Engine
+Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
+Active: active (running) since Tue 2020-05-19 17:00:41 UTC; 17s ago
+TriggeredBy: ● docker.socket
+Docs: https://docs.docker.com
+Main PID: 24321 (dockerd)
+Tasks: 8
+Memory: 46.4M
+CGroup: /system.slice/docker.service
+└─24321 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock</code></pre>
+
+        <p>Instalar o Docker agora fornece não apenas o serviço Docker (daemon), mas também a utilidade de linha de comando do Docker, ou o cliente Docker. Vamos explorar como usar o docker comando mais tarde neste tutorial.</p>
+    </section>
+
+    <hr>
+
+    <header>
+        <h1>Passo 2 — Executando o Comando Docker Sem Sudo (Opcional)</h1>
+    </header>
+
+    <section>
+        <p>Por padrão, o comando docker só pode ser executado pelo usuário root ou por um usuário no grupo docker, que é criado automaticamente durante o processo de instalação do Docker. Se você tentar executar o comando docker sem prefixá-lo com sudo ou sem estar no grupo docker, você receberá uma saída como esta:</p>
+
+        <pre><code>docker: Cannot connect to the Docker daemon. Is the docker daemon running on this host?.
+See 'docker run --help'.</code></pre>
+
+        <p>Se você quiser evitar digitar sudo sempre que executar o comando docker, adicione seu nome de usuário ao grupo docker:</p>
+
+        <pre><code>sudo usermod -aG docker ${USER}</code></pre>
+
+        <p>Para aplicar a nova associação ao grupo, faça logout do servidor e faça login novamente, ou digite o seguinte:</p>
+
+        <pre><code>su - ${USER}</code></pre>
+a
+        <p>Você será solicitado a inserir a senha do seu usuário para continuar.</p>
+
+        <p>Confirme que seu usuário agora foi adicionado ao grupo docker digitando:</p>
+
+        <pre><code>groups</code></pre>
+
+        <p>Output:</p>
+
+        <pre><code>sammy sudo docker</code></pre>
+
+        <p>Se você precisar adicionar um usuário ao grupo docker com o qual você não está logado, declare esse nome de usuário explicitamente usando:</p>
+
+        <pre><code>sudo usermod -aG docker username</code></pre>
+
+        <p>O restante deste artigo pressupõe que você está executando o comando docker como um usuário no grupo docker. Se você optar por não fazer isso, por favor, prefixe os comandos com sudo.</p>
+    </section>
+
+    <hr>
+
+    <header>
+        <h1>Passo 3 — Usando o Comando Docker</h1>
+    </header>
+
+    <section>
+        <p>Usar o docker consiste em passar a ele uma cadeia de opções e comandos seguidos por argumentos. A sintaxe segue este formato:</p>
+
+        <pre><code>docker [opção] [comando] [argumentos]</code></pre>
+
+        <p>Para visualizar todos os subcomandos disponíveis, digite:</p>
+
+        <pre><code>docker</code></pre>
+
+        <p>Isso fornecerá uma lista de subcomandos Docker com uma breve descrição de cada um.</p>
+
+        <p>Agora você está pronto para começar a usar o Docker no seu servidor Ubuntu 20.04. Continue explorando os comandos e as possibilidades oferecidas pelo Docker para gerenciar e implantar contêineres.</p>
+    </section>
+
+</body>
+</html>
